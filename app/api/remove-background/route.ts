@@ -1,10 +1,5 @@
-import { fal } from "@fal-ai/client";
 import { NextRequest, NextResponse } from "next/server";
-
-// Configure fal client with API key from environment
-fal.config({
-  credentials: process.env.FAL_KEY,
-});
+import { getImageProvider } from "@/app/lib/image-generation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,27 +12,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await fal.subscribe("fal-ai/bria/background/remove", {
-      input: {
-        image_url: imageUrl,
-      },
-    });
-
-    const data = result.data as {
-      image: { url: string; width: number; height: number };
-    };
-
-    if (!data.image) {
-      return NextResponse.json(
-        { error: "Background removal failed" },
-        { status: 500 }
-      );
-    }
+    const provider = getImageProvider();
+    const result = await provider.removeBackground(imageUrl);
 
     return NextResponse.json({
-      imageUrl: data.image.url,
-      width: data.image.width,
-      height: data.image.height,
+      imageUrl: result.imageUrl,
+      width: result.width,
+      height: result.height,
     });
   } catch (error) {
     console.error("Error removing background:", error);

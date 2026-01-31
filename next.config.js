@@ -5,15 +5,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.fal.media',
-      },
-      {
-        protocol: 'https',
         hostname: 'storage.googleapis.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'v3.fal.media',
       },
     ],
   },

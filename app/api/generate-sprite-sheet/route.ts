@@ -1,8 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
-
-// Initialize Google Generative AI with API key
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
+import { getImageProvider } from "@/app/lib/image-generation";
 
 const WALK_SPRITE_PROMPT = `Create a 6-frame pixel art walk cycle sprite sheet of this character.
 
@@ -72,39 +69,18 @@ export async function POST(request: NextRequest) {
     const spriteType = (type as SpriteType) || "walk";
     const prompt = customPrompt || PROMPTS[spriteType] || PROMPTS.walk;
 
-    // Use Kimi K2.5 for multimodal image editing
-    const model = genAI.getGenerativeModel({ model: "kimi-k2.5" });
-
-    // For image editing with Kimi K2.5
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: Buffer.from(characterImageUrl.split(',')[1], 'base64').toString('base64'),
-          mimeType: 'image/png',
-        },
-      },
-    ]);
-
-    const response = await result.response;
-    const text = response.text();
-
-    // Parse the response to get the generated image
-    // This is a placeholder - actual implementation depends on Kimi K2.5's response format
-    // The model should return image data or a URL
+    const provider = getImageProvider();
+    const result = await provider.editImage(characterImageUrl, prompt);
 
     return NextResponse.json({
-      message: "Sprite sheet generation via Kimi K2.5",
-      type: spriteType,
-      status: "implemented",
-      model: "kimi-k2.5",
-      prompt,
+      imageUrl: result.imageUrl,
+      width: result.width,
+      height: result.height,
     });
-
   } catch (error) {
-    console.error("Error generating sprite sheet with Kimi K2.5:", error);
+    console.error("Error generating sprite sheet with Gemini:", error);
     return NextResponse.json(
-      { error: "Failed to generate sprite sheet with Kimi K2.5" },
+      { error: "Failed to generate sprite sheet" },
       { status: 500 }
     );
   }
